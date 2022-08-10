@@ -1,0 +1,63 @@
+---
+
+author: "Garima Setia"
+date: "10/12/2021"
+output: html_document
+---
+
+```{r}
+
+
+pop.growth.rate <- expression(r*N*(1-N/K)*((N/K)-(C/K)))
+r <- 1
+K <- 1/0.01
+N <- 0:120
+C <- 20
+plot(N, eval(pop.growth.rate), type = "l", ylab = "Population Growth Rate (dN/dt)", xlab = "N")
+abline(h = 0)
+legend("topright", "r=1", lty = 1)
+N <- c(0, 20, 100)
+points(N, eval(pop.growth.rate), cex = 1.5)
+text(8, 2, "At N* = 0, Stable", cex = 0.8 )
+text(25, -2, "At N* = C(20), Unstable", cex = 0.8)
+text(100, -2, "At N* = K(1/0.01), Stable", cex = 0.8)
+```
+
+```{r}
+
+
+dlogistic <- function(K = 100, R = 1, N0 = 2, t = 15) {
+  N <- c(N0, numeric(t))
+   for (i in 1:t) N[i + 1] <- {
+     N[i]*exp(R*(1-(N[i]/K)))
+     }
+   return(N)
+}
+N
+Nts <- dlogistic()
+t <- 15
+K <- 100
+plot(0:t, Nts)
+abline(h = K, lty = 3)
+total.incr <- Nts[1:t + 1] - Nts[1:t]
+per.capita.incr <- total.incr/Nts[1:t]
+plot(Nts[1:t], total.incr)
+plot(Nts[1:t], per.capita.incr)
+rd.v <- c(1.5, 2.0, 2.2, 2.6, 3.0)
+rd.v
+t <- 15
+Ns <- data.frame(sapply(rd.v, function(r) dlogistic(R = r, t = t)))
+Ns
+matplot(0:t, Ns, type = "l", col = 1)
+tmp <- data.frame(R = as.factor(rd.v), t(Ns))
+Ns2 <- reshape(tmp, varying = list(2:ncol(tmp)), idvar = "R", v.names = "N", direction = "long")
+str(Ns2)
+library(lattice)
+xyplot(N ~ time | R, data = Ns2, type = 'l', layout = c(3,2,1))
+## R < 2 = stable equilibrium and the population grows gradually towards the carrying capacity
+## 2 < R < 3 two-point cycle with periodic or stable attractors: The population returns the attractor at regular time intervals)
+## At R > 2.6 population bounce back and forth around carrying capacity with the values varying according to the time and the stable cycle shifts  into chaos
+
+
+```
+

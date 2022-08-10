@@ -1,0 +1,152 @@
+---
+
+author: "Garima Setia"
+date: "11/11/2021"
+output: html_document
+---
+
+```{r}
+
+r1 = 0.22; r2 = 0.06; K1 = 13.00; K2 = 5.80; a21 = 0.439; a12 = 2.18
+population1 <- seq(0, K1, .01)
+population2 <- seq(0, K2, .01)
+
+output1<-numeric()
+for(i in 1:length(population2)){
+  output1[i]<- K1 - a12*population2[i]
+}
+
+output2<-numeric()
+for(i in 1:length(population1)){
+  output2[i]<- K2 - a21*population1[i]
+}
+
+plot(1, type='n', xlim=c(1,14), ylim=c(1,6), xlab = "N1", ylab = "N2")
+lines(x = population1, y = output2, col='red') #N2 isocline
+lines(x = output1, y = population2, col='blue') #N1 isocline
+
+points(7.5, 2.5,cex = 1, pch = 19,col = "darkgreen")
+text(9.3, 2.5, "Stable Equillibrium ")
+
+
+
+arrows(x0 = 3, y0 = 1, x1 = 5, y1 = 1, length = 0.1, col = 'blue')
+arrows(x0 = 11, y0 = 1, x1 = 9.5, y1 = 1, length = 0.1, col = 'blue')
+arrows(x0 = 8, y0 = 4.5, x1 = 6.5, y1 = 4.5, length = 0.1, col = 'blue')
+arrows(x0 = 3.1, y0 = 4.5, x1 = 4.5, y1 = 4.5, length = 0.1, col = 'blue')
+
+arrows(x0 = 3, y0 = 1, x1 = 3, y1 = 2, length = 0.1, col = 'red')
+arrows(x0 = 11, y0 = 1, x1 = 11, y1 = 2, length = 0.1, col = 'red')
+arrows(x0 = 8, y0 = 4.5, x1 = 8, y1 = 3.5, length = 0.1, col = 'red')
+arrows(x0 = 3.1, y0 = 4.5, x1 = 3.1, y1 = 3.5, length = 0.1, col = 'red')
+
+arrows(x0 = 3, y0 = 1, x1 = 4.5, y1 = 2, length = 0.1)
+arrows(x0 = 8, y0 = 4.5, x1 = 7, y1 = 3.5, length = 0.1)
+arrows(x0 = 11, y0 = 1, x1 = 8.8, y1 = 2, length = 0.1)
+arrows(x0 = 3.1, y0 = 4.5, x1 = 5.2, y1 = 3.5, length = 0.1)
+
+text (3,1, "a")
+
+
+text(11.4, 1, "b")
+text(8,4.8, "c")
+text(3.1, 4.8, "d")
+legend("topright", c("N1", "N2"), lty = 1, col = c("blue", "red"), bty = "n")
+#This case follows the condition of coexistance: a12<K1/K2 (2.18<2.2413) and a21<K2/K1 (0.439<0.4461)
+#Since in this case both species are present beyond their carrying capacity so intraspecific competition will be present in both species.
+#The growth of both species is limited by intraspecific competition. An unstable coexistance occurs (at stable equillibrium point) until intraspecific competition stops.
+#The species which finish its intraspecific competition and comes back into its carrying capacity will win.
+#The populations are getting attracted towards the stable equillibrium point.
+#The point a is below the isoclines of both the species so both species can grow at this point.
+#At point b, only species 2 can grow, as it is above the no growth isocline of species 1 and below the no growth isocline of species 2.
+#The point c is above the isoclines of both the species so population of both the species will decline at this point.
+#The point d only species 1 can grow, as it is above the no growth isocline of species 2 and below the no growth isocline of species 1.
+#As one of the population is decreasing, it frees up the resources for other population to grow and reach its carrying capacity.
+```
+
+```{r}
+
+lvcomp2 <- function(t, n, parms) {
+  with(as.list(parms), {
+    dn1dt <- r1 * n[1] * ((K1- n[1]- (a12*n[2]))/K1)
+    dn2dt <- r2 * n[2] * ((K2- n[2]- (a21*n[1]))/K2)
+    list(c(dn1dt, dn2dt))
+  })
+}
+library(deSolve)
+parms <- c(r1 = 0.22, r2 = 0.06, K1 = 13.00, K2 = 5.80, a21 = 0.439, a12 = 2.18)
+initialN <- c(1,1)
+out <- ode(y = initialN, times = 1:500, func = lvcomp2, parms = parms)
+plot(out[, 2], out[, 3], type = "l", xlab = "N1", ylab = "N2")
+
+```
+
+
+```{r}
+matplot(out[,1], (out[, 2:3]), type = "l", xlab = "Time", ylab = "Population Size")
+
+#Both populations first increase in number, however, later population of Schizosaccharomyces (N2) maintains a constant population size whereas Saccharomyces (N1) increases rapidly and maintains a constant population size after reaching a comparatively higher population size.
+#The reason behind that could be that the populations are competing for same resources and the N1 population of yeast is consuming more resources, however, the both species can coexist with N1 existing at higher population size and N2 existing at lower population size.
+```
+
+
+
+
+```{r}
+
+r1 = 0.22; r2 = 0.06; Ks = 11.5; K2 = 5.80; a21 = 0.439; a12 = 2.18
+population1.s<-seq(0, Ks, .01)
+population2.s<-seq(0, K2, .01)
+
+output1.s<-numeric()
+for(i in 1:length(population2.s)){
+  output1.s[i]<- Ks - a12*population2.s[i]
+}
+
+output2.s<-numeric()
+for(i in 1:length(population1.s)){
+  output2.s[i]<- K2 - a21*population1.s[i]
+}
+
+plot(1, type='n', xlim=c(1,14), ylim=c(1,6), xlab = "N1", ylab = "N2")
+lines(x = population1.s, y = output2.s, col='red')#N2 isocline
+lines(x = output1.s, y = population2.s, col='blue')#N1 isocline
+points(0.5, 5.6,cex = 1, pch = 19,col = "darkgreen")
+text(2.3, 5.6, "Stable Equillibrium ")
+
+
+arrows(x0 = 3, y0 = 1, x1 = 5, y1 = 1, length = 0.1, col = 'blue')
+arrows(x0 = 6.2, y0 = 3, x1 = 5.2, y1 = 3, length = 0.1, col = 'blue')
+arrows(x0 = 8, y0 = 4.5, x1 = 6.5, y1 = 4.5, length = 0.1, col = 'blue')
+
+
+arrows(x0 = 3, y0 = 1, x1 = 3, y1 = 2, length = 0.1, col = 'red')
+arrows(x0 = 6.2, y0 = 3, x1 = 6.2, y1 = 3.5, length = 0.1, col = 'red')
+arrows(x0 = 8, y0 = 4.5, x1 = 8, y1 = 3.5, length = 0.1, col = 'red')
+
+arrows(x0 = 3, y0 = 1, x1 = 4.5, y1 = 2, length = 0.1)
+arrows(x0 = 6.2, y0 = 3, x1 = 5, y1 = 3.5, length = 0.1)
+arrows(x0 = 8, y0 = 4.5, x1 = 7, y1 = 3.5, length = 0.1)
+
+text (3,1, "a")
+text(6.2, 2.7, "b")
+text(8,4.8, "c")
+```
+
+```{r}
+library(deSolve)
+parms.1 <- c(r1 = 0.22, r2 = 0.06, K1 = 11.5, K2 = 5.80, a21 = 0.439, a12 = 2.18)
+initialN <- c(1,1)
+out.1 <- ode(y = initialN, times = 1:500, func = lvcomp2, parms = parms.1)
+plot(out.1[, 2], out.1[, 3], type = "l", xlab = "N1", ylab = "N2")
+matplot(out.1[,1], (out.1[, 2:3]), type = "l", xlab = "Time", ylab = "Population Size")
+#After changing the carrying capacity of N1 to a lower value, species 2 wins: K1/a12<K2 (5.275<5.8) and K1<K2/a21 (11.5 < 13.2118) and species 1 will be excluded from the system. Species 1 cannot exclude species 2 because it would exceed its own carrying capacity. 
+#The isocline of species 2 is beyond species 1, so here species 2 outcompetes species 1.
+#The populations will be attracted towards stable equillibrium.
+#The point a is below the isoclines of both the species so both species can grow at this point.
+#At point b, only species 2 can grow , as it is above the no growth isocline of species 1 and below the no growth isocline of species 2.
+#The point c is above the isoclines of both the species so population of both the species will decline at this point.
+#the population of N1 first increase in number, reaches a maximum and then declines and population N2 increases gradually overtime.
+#Due to decrease in population of N1, the N2 population gets more excess to food sources and increase in number.
+```
+

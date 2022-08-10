@@ -1,0 +1,77 @@
+---
+author: "Garima_Setia"
+date: "12/6/2021"
+output: html_document
+```{r}
+library(deSolve)
+SEIR = function(t,y,p){
+  {
+    S = y[1]
+    E = y[2]
+    I = y[3]
+    R = y[4]
+  }
+  with(as.list(p),{
+    dS.dt = -B*S*I
+    dE.dt = B*S*I - a*E
+    dI.dt = (a*E) - (g*I)
+    dR.dt = g*I
+    return(list(c(dS.dt,dE.dt, dI.dt, dR.dt)))
+  })
+}
+S = 6739
+I = 1
+R = 0
+E = 0
+params = c(B = 0.01, a = 0.0685, g = 0.116)
+
+days = seq(0, 276, by = 0.1)
+SEIR.out = data.frame(ode(c(S,E,I,R), days, SEIR, params))
+
+day = c(0,31,61,92,123,153,184,214,245,276) 
+dead = c(0,1,9,29,55,156,558,807,838,844)
+y.obs = data.frame(day, dead)
+Beta = seq(0.00001, 0.0001, by=0.000001)
+SS = numeric()
+for(i in 1:length(Beta)){
+  params = c(B = Beta[i], a = 0.0685, g = 0.116)
+  SEIR.out = data.frame(ode(c(S,E,I,R), days, SEIR, params))
+  SS[i] = sum(abs(y.obs[,2]-(SEIR.out[which(SEIR.out$time%in%y.obs$day),5]*.14)))
+}
+
+Beta.best.value = Beta[which.min(SS)] 
+plot(Beta,SS, ylab = 'Sum of squares',xlab = 'Beta', pch=19, col='darkgreen')
+abline(v = Beta.best.value, col='darkred',lwd=3)
+text(0.000059,2500, "Value of best beta")
+params = c(B = Beta.best.value, a = 0.0685, g = 0.116)
+SEIR.out.best.value = data.frame(ode(c(S,E,I,R), days, SEIR, params))
+
+
+plot(SEIR.out.best.value[,1], (SEIR.out.best.value[,5]*(0.14)), col='grey',  ylab = 'Deaths', xlab = 'Time', main = "Observed and predicted deaths vs Time")
+points(y.obs, col='darkgreen', pch=19)
+
+legend('bottomright', legend = c('Oserved deaths', 'Predicted deaths'), pch=19, col=c('grey', 'darkgreen'),bty = "n")
+g = 0.116
+S = 6739
+R0= Beta.best.value*S/g
+R0
+```
+
+```{r}
+
+#R0, reproduction number, is the average number of secondary cases infected by each primary case. It estimates the speed at which a disease is capable of spreading in a population.
+#Since, in this case, the reproduction number is greater than 1, the disease will spread and epidemic occurs.
+#The estimation of R0 for a particular population is useful for understanding transmission in the study population. 
+#A higher transmissibility of the disease increases its probability of spread. 
+#R0 increase with increase in infectivity and contact rate and it decreases with increasing recovery rate.It varies with level of population density and socio-economic conditions in a population. Increase in population density and decrease in socio-economic conditions leads to increase in R0.
+#It is also impacted by properties of the pathogen.
+
+#A greater value of R0, requires more intense intervention strategies to bring the disease under control.
+#The goal of any public policy response during an epidemic is to slow or stop the spread of the disease by trying to bring R0 down to less than 1. This can be done by employing various mitigation strategies and public health interventions.
+#These strategies either reduce R0 by changing the transmission rate (e.g., social distancing, masks, hand washing, isolation, and quarantine.)/ the duration of infectiousness (Medicines) or by reducing the number of susceptible individuals (e.g., by vaccination).
+
+#Thus, the R0 value depends on a variety of factors that vary from situation to situation.In reality, the data is continually updated and is dependent upon the surveillance system implemented, leading to variability in R0.
+#Although practically it is very difficult, the variabilty within the estimate of R0 could be dealt with by varying the level of public health interventions (e.g, vaccination levels).
+
+```
+

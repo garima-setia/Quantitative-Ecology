@@ -1,0 +1,118 @@
+---
+author: "Garima Setia"
+date: "9/28/2021"
+output:
+  html_document
+---
+
+
+
+
+
+
+```{r}
+A = matrix(c(0, 0, 1.73, 0.50, 0.95, 0.60, 0.03, 0.03,  0.38), nrow = 3, byrow = TRUE)
+A
+
+eigen.A = eigen(A)
+eigen.A
+
+#Dominate eigenvalue
+dom.pos = which.max(Re(eigen.A$values))
+L1 = Re(eigen.A$values[dom.pos])
+L1
+# dominate eigenvalue = 1.023189
+
+#Stable-stage/age structure
+
+w = Re(eigen.A$vectors[,dom.pos])
+
+SSD = w/sum(w)
+round(SSD, 3)
+#The population of Mariposa Lily will contain 7.5% seeds, 88% non-flowering rosettes and 4.5% flowering rosettes.
+
+#Reproductive value
+M = eigen(t(A)) #transpose of the projection matrix A
+v = Re(M$vectors[, which.max(Re(M$values))])
+
+RV = v/v[1]
+round(RV, 3)
+
+#Along with increase in age, the reproductive value is also increasing (1, 1.785, 4.355). 
+
+vw.s = v %*% t(w)
+S = vw.s/as.numeric(v%*%w)
+S
+round(S,3)
+## s_{32} = 2.082 is the most sensitive element in the transition matrix
+
+```
+# dominate eigenvalue = 1.023189
+#The population of Mariposa Lily will contain 7.5% seeds, 88% non-flowering rosettes and 4.5% flowering rosettes.
+#Along with increase in age, the reproductive value is also increasing (1, 1.785, 4.355). 
+# s_{32} = 2.082 is the most sensitive element in the transition matrix
+
+
+
+```{r}
+
+B = matrix(c(0, 0, 1.73, 0.50, 0.875, 0.60, 0.03, 0.03, 0.38), nrow = 3, byrow = TRUE)
+B
+
+N0 = matrix(c(200, 200, 200), ncol = 1)
+N0
+
+N1 = B%*%N0
+N1
+
+years = 50
+N = matrix(0, ncol = length(N0), nrow = years + 1)
+N[1,] = N0
+Simulations = 1000
+Total.population = numeric()
+Df.extinction<-as.data.frame(matrix(nrow = years, ncol = Simulations))
+
+for(j in 1:Simulations){
+  N = matrix(0, ncol = length(N0), nrow = years + 1)
+  N[1,] = N0
+  for(i in 1:years){
+    YearMatrix<-sample(x = c('Good','Bad'), size = 1, prob = c(.5,.5))
+    if(YearMatrix=='Bad'){
+      popt<-B
+    }
+    if(YearMatrix=='Good'){
+      popt<-A
+    }
+    N[i+1,] = popt%*%N[i,]
+    if(sum(N[i+1,])>100){
+      Df.extinction[i,j]<-0
+    }
+    if(sum(N[i+1,])<=100){
+      Df.extinction[i,j]<-1
+    }
+  }
+  Total.population[j]<-sum(N[i,])
+}
+
+```
+#Probability of extinction
+
+```{r}
+hist(Total.population, xlim = c(0, max(Total.population)))
+abline(v = 100, col='red')
+legend('topright', legend = 'Quasi-extinction level',
+       col = 'red', bty='n',lwd=1)
+
+
+probOfExtinction<-numeric()
+time<-1:50
+
+for(i in 1:nrow(Df.extinction)){
+  probOfExtinction[i]<-sum(Df.extinction[i,])/Simulations
+}
+
+plot(x = time, y = probOfExtinction, main = 'Probability of extinction', xlab = 'years', ylab = 'Probability', type = 'l')
+```
+
+
+#Since the quasi-extinction level (100) is less than the lowest population level and the value obtained for the probability of extinction is zero, it can be said that population is not on a verge of extinction.
